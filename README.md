@@ -42,6 +42,7 @@ GitHub 저장소는 `kojaehyuk12/my-portfolio`이며 `main` 브랜치가 Vercel 
 - README / Projects / Stack / About / Education / Contact
 - 뜀오, Last Dance, Neko Adventure, MindMaze Escape, AI 영화추천, What Happens Here, 영화 평점 비교 플랫폼
 - 프로젝트 기간·역할·기술·기능·성과 및 개인 기여 설명
+- 프로젝트 카드의 문제·해결 요약, 상세보기의 함수·상태 구조와 처리 흐름을 근거로 한 구현 설명
 - 전체 / 웹 / 모바일 / 게임 필터, 프로젝트·기술 검색, 상세 모달, GitHub·Notion 링크
 - 파일 탐색 사이드바, 차분한 다크 테마, 상세보기의 원본 자료, 반응형 구성
 - 이메일 연락·복사, `/` 검색 단축키, 키보드 포커스·Escape 닫기·모션 감소 설정 지원

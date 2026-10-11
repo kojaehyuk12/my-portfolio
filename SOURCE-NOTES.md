@@ -5,12 +5,24 @@
 | 프로젝트 | 확인한 근거 | 반영 내용 | 보강할 내용 |
 | --- | --- | --- | --- |
 | 뜀오 | 포트폴리오.pdf, runningapp/S13P11C202/README.md, Mobile의 BleManager.kt·BleDataParser.kt | 2025.07.07–08.18, FE 리드, Kotlin·Compose, 개인 회고의 BLE 선택과 권한 이슈, 프로젝트 러닝 기능 | 실제 저장소 URL, 본인 기여 상세, 측정 가능한 개선 결과 |
-| Last Dance | 포트폴리오.pdf, S13P21C107/README.md의 팀 역할표·고재혁 회고, frontend/package.json | 2025.09–10, FE 리더, 전반 UI/UX 설계, 단계별 유언 작성·예약, PDF·엑셀 연동 | 실제 저장소 URL, 세부 구현 코드와 회고 보강 |
+| Last Dance | 포트폴리오.pdf, S13P21C107/README.md의 팀 역할표·고재혁 회고, frontend/package.json, WillCreation/index.jsx, pdfGenerator.js | 2025.09–10, FE 리더, UI/UX 설계, formData 기반 단계별 입력·검증·저장, PDF 생성 | 실제 저장소 URL, 측정 가능한 개선 결과 |
 | Neko Adventure | 포트폴리오.pdf | 2025.10.10–11.20, Unity·C#, 캐릭터·적 AI 담당, 고양이 로그라이크 | Unity 소스, 플레이 영상, AI 구조·기술적 문제 해결. 제공 폴더에는 로그와 실행 관련 캐시만 확인됨 |
 | MindMaze Escape | README, Chapter1Chess.java, BagImageAdapter.java, Ending 클래스들, 사용자 확인 | 2024.03–06, 리더 및 프론트엔드, Java·Android·XML, 드래그 체스, 인벤토리, 챕터·엔딩, 사운드 | 프로젝트 정식명·저장소 URL |
 | AI 영화추천 | movie_AI README, movie_poster_generator.js, movie_similar.js, project.js, 사용자 확인 | 2024.03–06, 리더 및 프론트엔드, JS 웹, DALL·E 3 이미지 생성, Vision 분석, TMDB 탐색·필터·예고편 | 저장소 URL |
-| What Happens Here | README, FirstScreen.java, chatbot_api.py, Spring Boot 컨트롤러, 사용자 확인 | 2024.09–12, 풀스택 리더, LibGDX 게임, AI 대화, Spring Boot 커뮤니티 | 저장소 URL |
+| What Happens Here | README, FirstScreen.java, FifthScreen.java, chatbot_api.py, Spring Boot 컨트롤러, 사용자 확인 | 2024.09–12, 풀스택 리더, LibGDX HTTP 콜백·JSON 처리, Flask 힌트 API, Spring Boot 커뮤니티 | 저장소 URL |
 | 영화 평점 비교 플랫폼 | final-movie README 역할표, Vue package.json, ExploreView.vue, MovieDetailView.vue, 사용자 확인 | 2025.05–06, 고재혁 Frontend, Vue3·Pinia·Router, 영화 탐색·상세·OTT | 정식명·저장소 URL, 구현 기능과 계획 기능 추가 구분 |
+
+## 구체적인 해결 방법의 근거
+
+- 뜀오: `BleConnectionState`와 `StateFlow`로 연결 단계를 노출하고, `BleDataParser`에서 접두어별 건강 데이터를 변환합니다. 권한 확인과 연결 종료 시 정리를 확인했습니다. 재연결 함수의 호출은 확인되지 않아 자동 재연결 성공이나 지연 감소를 주장하지 않습니다.
+- Last Dance: `WillCreation`의 부모 `formData`와 단계별 key·onChange, 검증 결과에 따른 버튼 상태, 저장 성공 후 완료 화면 이동을 확인했습니다. PDF는 같은 데이터를 템플릿에 전달하고 html2canvas 이미지와 jsPDF 페이지로 구성합니다.
+- MindMaze Escape: `ACTION_DROP` 좌표를 행·열로 변환하고 보드 밖 드롭을 복원합니다. `checkQueensPosition()`은 두 퀸의 지정된 정답 좌표를 검사하며, N-Queens 탐색 알고리즘으로 표현하지 않습니다. 아이템은 `ITEM_ID`와 `RESULT_OK`로 반환하고 인벤토리에서는 `convertView`를 재사용합니다.
+- AI 영화추천: 이미지 생성·Vision 유사 이미지·영화 검색의 비동기 연결, 제목과 `media_type`을 합친 Map 키로 중복 제거, 로딩·실패·빈 결과 분기를 확인했습니다.
+- What Happens Here: 구체적인 클라이언트 예시는 `FifthScreen`의 POST 요청과 `HttpResponseListener`에 한정합니다. Flask는 필수 입력 검증과 사전 힌트의 system 메시지 구성을 담당합니다. 다른 화면의 요청 방식까지 일관되다고 주장하거나 대화 기록을 사용자별 세션으로 표현하지 않습니다.
+- 영화 평점 비교 플랫폼: `MovieDetailView.vue`의 `normalizeOttName()`, computed와 Set을 이용한 자체 DB 우선 병합, 기본 시청 링크 보완, 라우트 ID 감시를 확인했습니다.
+- Neko Adventure: 구현 소스가 없어 구체적인 AI 알고리즘이나 문제 해결 사례를 추가하지 않았습니다.
+
+위 설명은 원본 코드를 읽고 정리한 구현 구조입니다. 성능·정확도 개선 수치, 당시 겪은 장애나 선택하지 않은 대안은 근거가 없어 덧붙이지 않았습니다.
 
 ## 개인 이력
 
