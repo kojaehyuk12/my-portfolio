@@ -63,7 +63,7 @@ function App() {
     <a className="skip-link" href="#main">본문으로 이동</a>
     <header className="site-header">
       <div className="header-inner container">
-        <a className="brand" href="#hero" aria-label="고재혁 포트폴리오 처음으로"><span className="brand-symbol">j<span>h</span></span><span>JAEHYUK<span className="accent">.</span><small>DEVELOPER PORTFOLIO</small></span></a>
+        <a className="brand" href="#hero" aria-label="고재혁 포트폴리오 처음으로"><span className="brand-symbol" aria-hidden="true">j<span>h</span></span><span>{profile.name}<span className="accent">.</span><small>DEVELOPER PORTFOLIO</small></span></a>
         <nav id="main-navigation" className={`main-nav ${menuOpen ? 'is-open' : ''}`} aria-label="주요 메뉴">{navigation.map(([id, label]) => <a href={`#${id}`} key={id} onClick={() => setMenuOpen(false)} className={activeSection === id ? 'is-active' : ''} aria-current={activeSection === id ? 'location' : undefined}>{label}</a>)}</nav>
         <a className="header-github icon-button" href={profile.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub 프로필 새 창에서 열기"><Icon name="github" size={21} /></a>
         <button ref={menuButtonRef} type="button" className="menu-toggle icon-button" aria-label={menuOpen ? '메뉴 닫기' : '메뉴 열기'} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(value => !value)}><Icon name={menuOpen ? 'close' : 'menu'} size={24} /></button>
@@ -110,8 +110,22 @@ function App() {
 
       <section id="about" className="section about-section">
         <div className="container">
-          <SectionHeading number="01" label="ABOUT ME" title="코드 너머의 가치를 생각합니다" />
-          <div className="about-grid"><div className="about-name-card"><span className="name-card-label mono">HELLO, I’M</span><strong>{profile.englishName.split(' ')[1]}<span>{profile.englishName.split(' ')[0]}<i>.</i></span></strong><div className="name-card-bottom"><span>{profile.name} / {profile.role}</span><Icon name="code" size={25} /></div></div><div className="about-text"><h3>좋은 질문에서 시작해,<br />더 나은 답을 만드는 개발자.</h3>{profile.about.map(paragraph => <p key={paragraph}>{paragraph}</p>)}<a href={profile.notion} target="_blank" rel="noopener noreferrer" className="inline-link">생각과 기록 살펴보기<Icon name="arrow" size={17} /><span className="sr-only">Notion 새 창에서 열기</span></a></div></div>
+          <SectionHeading number="01" label="ABOUT ME" title={profile.aboutTitle} />
+          <div className="about-grid">
+            <div className="about-name-card">
+              <span className="name-card-label">안녕하세요.</span>
+              <div className="name-card-identity">
+                <h3>{profile.name}<span className="accent">.</span></h3>
+                <p>{profile.roleKorean}</p>
+              </div>
+              <div className="name-card-bottom"><span>화면 설계부터 기능 구현까지</span><Icon name="code" size={23} /></div>
+            </div>
+            <div className="about-text">
+              <h3>{profile.aboutLead.map(line => <span key={line}>{line}</span>)}</h3>
+              {profile.about.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+              <a href={profile.notion} target="_blank" rel="noopener noreferrer" className="inline-link about-notion-link"><Icon name="book" size={18} />개발 과정과 기록 보기<Icon name="arrow" size={17} /><span className="sr-only"> — Notion, 새 창에서 열기</span></a>
+            </div>
+          </div>
           <div className="principle-grid">{principles.map((principle, index) => <article className="principle" key={principle.title}><div className="principle-top"><Icon name={principle.icon} size={24} /><span className="mono">0{index + 1}</span></div><h3>{principle.title}</h3><p>{principle.text}</p></article>)}</div>
         </div>
       </section>
@@ -153,7 +167,7 @@ function App() {
       </section>
     </main>
 
-    <footer className="site-footer container"><a href="#hero" className="footer-brand">JAEHYUK<span className="accent">.</span></a><p>© {new Date().getFullYear()} {profile.englishName}. Built with React & Vite.</p><a href="#hero" className="back-to-top">Back to top<Icon name="up" size={15} /></a></footer>
+    <footer className="site-footer container"><a href="#hero" className="footer-brand">{profile.name}<span className="accent">.</span></a><p>© {new Date().getFullYear()} {profile.name}. Built with React & Vite.</p><a href="#hero" className="back-to-top">Back to top<Icon name="up" size={15} /></a></footer>
     {selectedProject && <ProjectDialog project={selectedProject} onClose={() => setSelectedProject(null)} />}
     <div className={`toast ${toast ? 'is-visible' : ''}`} role="status" aria-live="polite">{toast && <><Icon name={copied ? 'check' : 'link'} size={18} /><span>{toast}</span><button type="button" aria-label="알림 닫기" onClick={() => setToast('')}><Icon name="close" size={17} /></button></>}</div>
   </>;

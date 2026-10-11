@@ -7,10 +7,10 @@
 | 뜀오 | 포트폴리오.pdf, runningapp/S13P11C202/README.md, Mobile의 BleManager.kt·BleDataParser.kt | 2025.07.07–08.18, FE 리드, Kotlin·Compose, 개인 회고의 BLE 선택과 권한 이슈, 프로젝트 러닝 기능 | 실제 저장소 URL, 본인 기여 상세, 측정 가능한 개선 결과 |
 | Last Dance | 포트폴리오.pdf, S13P21C107/README.md의 팀 역할표·고재혁 회고, frontend/package.json | 2025.09–10, FE 리더, 전반 UI/UX 설계, 단계별 유언 작성·예약, PDF·엑셀 연동 | 실제 저장소 URL, 세부 구현 코드와 회고 보강 |
 | Neko Adventure | 포트폴리오.pdf | 2025.10.10–11.20, Unity·C#, 캐릭터·적 AI 담당, 고양이 로그라이크 | Unity 소스, 플레이 영상, AI 구조·기술적 문제 해결. 제공 폴더에는 로그와 실행 관련 캐시만 확인됨 |
-| MindMaze Escape | README, Chapter1Chess.java, BagImageAdapter.java, Ending 클래스들 | Java·Android·XML, 드래그 체스, 인벤토리, 챕터·엔딩, 사운드 | 정확한 개발 기간·개인 역할·프로젝트 정식명·저장소 URL |
-| AI 영화추천 | movie_AI README, movie_poster_generator.js, movie_similar.js, project.js | JS 웹, DALL·E 3 이미지 생성, Vision 분석, TMDB 탐색·필터·예고편 | 기간·개인 역할·저장소 URL |
-| What Happens Here | README, FirstScreen.java, chatbot_api.py, Spring Boot 컨트롤러 | LibGDX 게임, AI 대화, Spring Boot 커뮤니티 | 기간·개인 역할·저장소 URL |
-| 영화 평점 비교 플랫폼 | final-movie README 역할표, Vue package.json, ExploreView.vue, MovieDetailView.vue | 고재혁 Frontend, Vue3·Pinia·Router, 영화 탐색·상세·OTT | 기간·정식명·저장소 URL, 구현 기능과 계획 기능 추가 구분 |
+| MindMaze Escape | README, Chapter1Chess.java, BagImageAdapter.java, Ending 클래스들, 사용자 확인 | 2024.03–06, 리더 및 프론트엔드, Java·Android·XML, 드래그 체스, 인벤토리, 챕터·엔딩, 사운드 | 프로젝트 정식명·저장소 URL |
+| AI 영화추천 | movie_AI README, movie_poster_generator.js, movie_similar.js, project.js, 사용자 확인 | 2024.03–06, 리더 및 프론트엔드, JS 웹, DALL·E 3 이미지 생성, Vision 분석, TMDB 탐색·필터·예고편 | 저장소 URL |
+| What Happens Here | README, FirstScreen.java, chatbot_api.py, Spring Boot 컨트롤러, 사용자 확인 | 2024.09–12, 풀스택 리더, LibGDX 게임, AI 대화, Spring Boot 커뮤니티 | 저장소 URL |
+| 영화 평점 비교 플랫폼 | final-movie README 역할표, Vue package.json, ExploreView.vue, MovieDetailView.vue, 사용자 확인 | 2025.05–06, 고재혁 Frontend, Vue3·Pinia·Router, 영화 탐색·상세·OTT | 정식명·저장소 URL, 구현 기능과 계획 기능 추가 구분 |
 
 ## 개인 이력
 
@@ -36,6 +36,6 @@
 ## 확인 상태
 
 - 데이터·설정·오프라인 생성 스크립트는 Node 구문 검사와 로컬 자산 연결 검사 대상입니다.
-- npm 설치는 이 세션의 네트워크 EACCES로 실패했습니다. React 개발 서버·빌드를 검증하지 못했습니다.
-- Chrome headless는 GPU 프로세스 오류로 종료되어 데스크톱·모바일 렌더링 및 클릭 동작을 브라우저에서 검증하지 못했습니다.
+- npm 의존성 설치와 React 프로덕션 빌드를 완료했습니다.
+- 이번 수정의 데스크톱·모바일 렌더링 및 클릭 동작은 브라우저에서 검증하지 못했습니다.
 - `portfolio-preview.html`은 같은 프로젝트 데이터와 CSS를 사용하는 별도의 정적 검토본입니다. React 런타임이나 Vite 빌드 결과물은 아닙니다.
