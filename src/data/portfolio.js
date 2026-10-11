@@ -34,7 +34,7 @@ export const projects = [
     contribution: 'Kotlin·Jetpack Compose 기반 프론트엔드 리드. 개인 회고에 기록된 Bluetooth 권한 대응과 BLE 통신 방식 선택 경험을 중심으로 정리했습니다.',
     outcomes: ['러닝 화면과 워치 건강 데이터 연결 경험을 쌓았습니다.', 'Java·XML에서 Kotlin·Jetpack Compose로 전환하며 선언형 UI를 프로젝트에 적용했습니다.'],
     githubUrl: '', detailUrl: 'https://app.notion.com/p/Tteumo-2b75f7a65f9a810f8bc2dd71d698ad39',
-    sourceNote: '포트폴리오 PDF, runningapp README의 고재혁 회고, BleManager·BleDataParser 코드 참고. 표지는 포트폴리오용 그래픽입니다.',
+    sourceNote: '포트폴리오 PDF, runningapp README의 고재혁 회고, BleManager·BleDataParser 코드 참고.',
   },
   {
     id: 'last-dance', title: 'Last Dance', englishTitle: 'LAST DANCE', number: '02', visual: 'dance', category: '웹',
@@ -60,7 +60,7 @@ export const projects = [
     contribution: '포트폴리오 PDF에 기재된 캐릭터·적 AI 개발 담당 이력을 반영했습니다. 세부 로직과 구현 결과는 소스 및 플레이 영상 확보 후 보강할 예정입니다.',
     outcomes: ['Unity·C# 프로젝트에서 캐릭터와 적 AI 개발을 담당했습니다.'],
     githubUrl: '', detailUrl: 'https://app.notion.com/p/Neko-Adventure-2b75f7a65f9a81fbb696d4f32647af12',
-    sourceNote: '포트폴리오 PDF 기준. 제공된 NekoAdventure 폴더에는 실행 로그만 있어 상세 구현은 기재하지 않았습니다. 표지는 포트폴리오용 그래픽입니다.',
+    sourceNote: '포트폴리오 PDF 기준. 제공된 NekoAdventure 폴더에는 실행 로그만 있어 상세 구현은 기재하지 않았습니다.',
   },
   {
     id: 'mindmaze', title: 'MindMaze Escape', englishTitle: 'MINDMAZE / ESCAPE', number: '04', visual: 'escape', category: '모바일',
@@ -85,7 +85,7 @@ export const projects = [
     solution: '이미지 생성 → 이미지 분석 → 영화 데이터 조회로 단계를 나눴습니다. DALL·E 3, Cloud Vision, TMDB를 연결하고 비동기 요청 결과를 포스터 탐색 화면에 표시합니다.',
     contribution: '2024년 3월부터 6월까지 팀 리더 및 프론트엔드 개발을 담당했습니다.',
     outcomes: ['이미지 생성부터 유사 영화 탐색까지 여러 외부 API를 연결한 웹 프로토타입입니다.'], githubUrl: '',
-    sourceNote: 'movie_AI README, movie_poster_generator.js, movie_similar.js, project.js 참고. 표지는 포트폴리오용 그래픽입니다.',
+    sourceNote: 'movie_AI README, movie_poster_generator.js, movie_similar.js, project.js 참고.',
   },
   {
     id: 'what-happens-here', title: 'What Happens Here', englishTitle: 'WHAT HAPPENS HERE?', number: '06', visual: 'mystery', category: '게임',

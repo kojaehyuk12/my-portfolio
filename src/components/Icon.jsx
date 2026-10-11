@@ -1,4 +1,8 @@
 const paths = {
+  folder: <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3V7Z" />,
+  search: <><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></>,
+  branch: <><circle cx="6" cy="5" r="2" /><circle cx="6" cy="19" r="2" /><circle cx="18" cy="5" r="2" /><path d="M6 7v10m12-10v2a6 6 0 0 1-6 6H6" /></>,
+  pin: <><path d="m9 3 12 12-3 1-3-3-5 5-4-4 5-5-3-3 1-3Zm-1 13-5 5" /></>,
   arrow: <><path d="M7 17 17 7M7 7h10v10" /></>,
   down: <><path d="M12 4v16m-6-6 6 6 6-6" /></>,
   up: <><path d="M12 20V4m-6 6 6-6 6 6" /></>,

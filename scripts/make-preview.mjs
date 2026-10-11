@@ -1,87 +1,33 @@
-// Dependency-free review copy. The production app remains React + Vite.
+// Build the same React application into a file that opens without a server.
 import { writeFile } from 'node:fs/promises';
-import { profile, projects, projectCategories, skillGroups, principles, awards, education } from '../src/data/portfolio.js';
+import { fileURLToPath } from 'node:url';
+import { build } from 'vite';
+import react from '@vitejs/plugin-react';
 
-const e = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-const local = path => `./public${path}`;
-const link = (url, label, cls = '') => `<a href="${e(url)}" class="${cls}" target="_blank" rel="noopener noreferrer">${label} ↗<span class="sr-only"> 새 창에서 열기</span></a>`;
-const head = (n, label, title, desc = '') => `<div class="section-heading"><div><div class="eyebrow"><span class="section-number">${n}</span>${label}</div><h2>${title}<span class="accent">.</span></h2>${desc ? `<p>${desc}</p>` : ''}</div></div>`;
-const list = (items, icon = '↗') => `<ul class="detail-list">${items.map(s => `<li><span class="accent" aria-hidden="true">${icon}</span>${e(s)}</li>`).join('')}</ul>`;
-
-function cover(p, compact = false) {
-  const illustrations = {
-    running: `<div class="run-composition" aria-hidden="true"><div class="run-title"><span>RUN WITH A STORY</span><strong>뜀오<span>↗</span></strong><small>오늘의 러닝이, 하나의 이야기가 되도록.</small></div><svg class="run-route" viewBox="0 0 330 250" fill="none"><path d="M15 212C40 120 132 238 186 138S243 9 306 57" stroke="currentColor" stroke-width="2" stroke-dasharray="5 5"/><path d="M15 212C40 120 132 238 186 138S243 9 306 57" stroke="currentColor" stroke-width="5" pathLength="100" stroke-dasharray="35 65"/><circle cx="15" cy="212" r="8" fill="currentColor"/><circle cx="306" cy="57" r="10" fill="currentColor"/><circle cx="306" cy="57" r="20" stroke="currentColor" opacity=".4"/></svg><div class="run-mode"><span>01 / CINEMA</span><span>02 / DOCENT</span><b>STORY<br>IN MOTION.</b></div></div>`,
-    dance: `<div class="dance-cover-title" aria-hidden="true"><span>A THOUGHTFUL FINAL CHAPTER</span><strong>Last<br><i>Dance.</i></strong><small>DESIGNING A CLEARER JOURNEY</small></div>`,
-    neko: `<div class="neko-composition" aria-hidden="true"><span class="neko-category">SINGLE PLAYER / ROGUELIKE</span><strong>SMALL CAT.<br><i>BIG ADVENTURE.</i></strong><div class="pixel-cat"><span>✦</span><svg viewBox="0 0 160 120"><path d="M25 50V15H50V35H110V15H135V100H25Z" fill="currentColor"/><path d="M45 55H60V70H45ZM100 55H115V70H100ZM72 77H88V87H72Z" fill="#353025"/><path d="M15 80H45M115 80H145" stroke="#353025" stroke-width="5"/></svg><span>✧</span></div></div>`,
-    movies: `<div class="ai-composition" aria-hidden="true"><span>IMAGINATION → DISCOVERY</span><strong>상상에서<br><i>다음 영화로.</i></strong><div class="ai-prompt"><span>✳</span> “보고 싶은 장면을 상상해 보세요”<b>↗</b></div><small>DALL·E 3 &nbsp; / &nbsp; VISION &nbsp; / &nbsp; TMDB</small></div>`,
-    film: `<div class="film-composition" aria-hidden="true"><span>ONE FILM. MANY PERSPECTIVES.</span><strong>SEE THE<br><i>BIGGER PICTURE.</i></strong><div class="film-score"><span>01<br><b>DISCOVER</b></span><span>02<br><b>COMPARE</b></span><span>03<br><b>WATCH</b></span></div></div>`,
-  };
-  return `<div class="project-visual visual-${p.visual} ${p.image ? 'has-image' : ''} ${compact ? 'compact' : ''}">${p.image ? `<img class="project-source-image" src="${local(p.image)}" alt="${e(p.imageAlt)}" loading="lazy" decoding="async">` : ''}<div class="visual-meta"><span>PROJECT ${p.number}</span><span>${e(p.imageLabel || 'PORTFOLIO COVER')}</span></div>${illustrations[p.visual] || ''}<span class="visual-bottom">${e(p.englishTitle)}<span>${p.category} PROJECT</span></span></div>`;
-}
-
-const cards = projects.map(p => `<article class="project-card ${p.featured ? 'featured-project' : ''}" data-category="${p.category}" data-featured="${!!p.featured}">
-  <button type="button" class="project-cover-button" data-project="${p.id}" aria-label="${e(p.title)} 프로젝트 상세 보기">${cover(p)}<span class="cover-open">↗</span></button>
-  <div class="project-card-content"><div class="project-title-row"><div><span class="project-subtitle">${e(p.subtitle)}</span><h3>${e(p.title)}</h3></div><span class="project-number mono">/${p.number}</span></div><p class="project-summary">${e(p.summary)}</p>
-  <dl class="project-metadata"><div><dt>기간</dt><dd>${e(p.period || '추가 정리 예정')}</dd></div><div><dt>역할</dt><dd>${e(p.role || '기여 범위 정리 중')}</dd></div></dl>
-  <div class="project-stack">${p.stack.map(s => `<span>${e(s)}</span>`).join('')}</div><div class="project-facts"><div><span>주요 기능</span><p>${e(p.features[0])}</p></div><div><span>성과</span><p>${e(p.outcomes[0])}</p></div></div>
-  <div class="project-actions">${link(p.githubUrl || profile.github, p.githubUrl ? 'GitHub' : 'GitHub 프로필')}<button type="button" data-project="${p.id}">상세보기 ↗</button></div></div></article>`).join('');
-
-const templates = projects.map(p => `<template id="detail-${p.id}"><div class="modal-topbar"><span>PROJECT ${p.number} <span class="muted">/ CASE STUDY</span></span><button type="button" data-close class="icon-button" aria-label="프로젝트 상세 닫기">✕</button></div><div class="modal-content"><span class="draft-label">${p.category} · PROJECT ${p.number}</span><h2 id="modal-project-title">${e(p.title)}</h2><p class="modal-subtitle">${e(p.summary)}</p>${cover(p, true)}
-  <dl class="modal-metadata"><div><dt>기간</dt><dd>${e(p.period || '추가 정리 예정')}</dd></div><div><dt>역할</dt><dd>${e(p.role || '기여 범위 정리 중')}</dd></div><div><dt>프로젝트 기술</dt><dd>${p.stack.map(e).join(', ')}</dd></div></dl>
-  <div class="contribution-note"><span>기여 범위</span><p>${e(p.contribution)}</p></div>
-  <section class="modal-detail"><span class="eyebrow">01 / KEY FEATURES</span><h3>어떤 경험을 만들었나요?</h3>${list(p.features, '✓')}</section>
-  ${p.challenge && p.solution ? `<section class="modal-detail"><span class="eyebrow">02 / DESIGN & IMPLEMENTATION</span><h3>문제를 바라보는 방식</h3><div class="problem-solution"><div><span>THE CHALLENGE</span><p>${e(p.challenge)}</p></div><div><span>THE APPROACH</span><p>${e(p.solution)}</p></div></div></section>` : ''}
-  <section class="modal-detail"><span class="eyebrow">03 / OUTCOMES</span><h3>결과와 배운 점</h3>${list(p.outcomes, '✳')}</section>
-  ${p.image ? link(local(p.image), `${e(p.imageLabel)} 원본 보기`, 'source-image-link inline-link') : ''}
-  ${(p.gallery || []).map(i => `<figure class="project-gallery">${link(local(i.src), `<img src="${local(i.src)}" alt="${e(i.alt)}" loading="lazy">`)}<figcaption>${e(i.caption)}</figcaption></figure>`).join('')}
-  <div class="modal-links">${link(p.githubUrl || profile.github, p.githubUrl ? 'GitHub 저장소' : 'GitHub 프로필', 'button button-primary')}${p.detailUrl ? link(p.detailUrl, 'Notion 기록', 'button button-secondary') : ''}<button type="button" data-close class="button button-text">다른 프로젝트 보기</button></div><p class="modal-footnote">${e(p.sourceNote)}</p></div></template>`).join('');
-
-const codeLines = [
-  '<span class="code-comment">// A little introduction</span>',
-  '<b class="code-violet">const</b> <b class="code-blue">developer</b> = {',
-  `&nbsp; name: <b class="code-lime">'${e(profile.name)}'</b>,`,
-  `&nbsp; focus: <b class="code-lime">'User experience'</b>,`,
-  '&nbsp; buildWith: [',
-  `&nbsp;&nbsp;&nbsp; <b class="code-lime">'React &amp; Vue'</b>,`,
-  `&nbsp;&nbsp;&nbsp; <b class="code-lime">'Kotlin &amp; Compose'</b>,`,
-  `&nbsp;&nbsp;&nbsp; <b class="code-lime">'Unity &amp; C#'</b>`,
-  '&nbsp; ],',
-  `&nbsp; next: <b class="code-lime">'A new challenge'</b>`,
-  '};',
-  '<b class="code-blue">developer</b>.<b class="code-yellow">build</b>();<i class="code-caret"></i>',
-];
-
-const html = `<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101113"><title>고재혁 · Developer Portfolio · 미리보기</title><link rel="icon" href="./public/favicon.svg"><link rel="stylesheet" href="./src/styles.css"><style>[hidden]{display:none!important}.project-cover-button{font-family:inherit}.cover-open{font-size:25px}.preview-note{padding:8px 20px;background:#202719;color:#b7c7a7;text-align:center;font-size:11px;line-height:1.7}.skill-icon,.principle-top{font-size:24px}.detail-list>li>span{flex-shrink:0}.header-github{font-family:var(--mono);font-size:12px}.menu-toggle{font-size:22px}</style></head><body>
-<a class="skip-link" href="#main">본문으로 이동</a><div class="preview-note">로컬 디자인 미리보기 · React 앱은 npm.cmd install → npm.cmd run dev로 실행할 수 있습니다.</div>
-<header class="site-header"><div class="header-inner container"><a class="brand" href="#hero" aria-label="고재혁 포트폴리오 처음으로"><span class="brand-symbol">j<span>h</span></span><span>${e(profile.name)}<span class="accent">.</span><small>DEVELOPER PORTFOLIO</small></span></a><nav id="main-navigation" class="main-nav" aria-label="주요 메뉴">${['About','Skills','Projects','Awards','Education','Contact'].map(s => `<a href="#${s.toLowerCase()}">${s}</a>`).join('')}</nav>${link(profile.github, 'GH', 'header-github icon-button')}<button class="menu-toggle icon-button" type="button" aria-label="메뉴 열기" aria-controls="main-navigation" aria-expanded="false">☰</button></div></header>
-<main id="main"><section id="hero" class="hero container"><div class="hero-grid"><div class="hero-copy"><div class="hero-kicker"><span class="kicker-line"></span>FRONTEND &amp; MOBILE DEVELOPER</div><h1>${e(profile.headline[0])}<br><span>${e(profile.headline[1])}</span></h1><p class="hero-intro">안녕하세요, 개발자 <strong>${e(profile.name)}</strong>입니다.</p><p class="hero-description">웹과 모바일에서 사용자의 다음 행동을 고민합니다.<br>흐름을 설계하고, 동작하는 서비스로 구현합니다.</p><div class="hero-actions"><a class="button button-primary" href="#projects">프로젝트 둘러보기 ↓</a>${link(profile.github,'GitHub','button button-secondary')}</div><div class="hero-footnote"><span>THINK DEEPLY.</span><span>BUILD THOUGHTFULLY.</span></div></div>
-<div class="hero-visual"><div class="code-window" aria-label="고재혁 개발자 소개 카드"><div class="code-window-bar"><div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div><span>developer.js</span></div><div class="code-content" aria-hidden="true">${codeLines.map((line,i) => `<div${i===11?' class="last-code-line"':''}><span class="line-number">${String(i+1).padStart(2,'0')}</span><span>${line}</span></div>`).join('')}</div><div class="code-window-bottom"><span>✓ Ready to create</span><span>JavaScript · UTF-8</span></div></div><div class="hero-sticker"><span class="sticker-icon">✳</span><div><b>Small details. Big difference.</b><span>작은 디테일이 더 나은 경험을 만듭니다.</span></div></div><span class="visual-corner" aria-hidden="true">{ }</span></div></div><div class="hero-bottom"><div><span class="mono">01 — 07</span><span>개발자로서의 생각과 기록</span></div><a href="#about" class="scroll-hint">SCROLL TO EXPLORE ↓</a></div></section>
-<section id="about" class="section about-section"><div class="container">${head('01','ABOUT ME',e(profile.aboutTitle))}
-<div class="about-grid"><div class="about-name-card"><span class="name-card-label">안녕하세요.</span><div class="name-card-identity"><h3>${e(profile.name)}<span class="accent">.</span></h3><p>${e(profile.roleKorean)}</p></div><div class="name-card-bottom"><span>화면 설계부터 기능 구현까지</span><span aria-hidden="true">&lt;/&gt;</span></div></div>
-<div class="about-text"><h3>${profile.aboutLead.map(line => `<span>${e(line)}</span>`).join('')}</h3>${profile.about.map(p=>`<p>${e(p)}</p>`).join('')}${link(profile.notion,'개발 과정과 기록 보기','inline-link about-notion-link')}</div></div>
-<div class="principle-grid">${principles.map((p,i)=>`<article class="principle"><div class="principle-top"><span aria-hidden="true">${['◎','◇','⌘'][i]}</span><span class="mono">0${i+1}</span></div><h3>${e(p.title)}</h3><p>${e(p.text)}</p></article>`).join('')}</div></div></section>
-<section id="skills" class="section skills-section container">${head('02','SKILLS','아이디어를 구현하는 도구들','웹, 모바일, 게임 프로젝트에서 사용한 기술입니다.')}<div class="skills-grid">${skillGroups.map((g,i)=>`<article class="skill-card"><div class="skill-icon" aria-hidden="true">${['⌘','◇','{ }'][i]}</div><h3>${e(g.title)}</h3><p>${e(g.description)}</p><div class="skill-tags">${g.skills.map(s=>`<span><i aria-hidden="true">${e(s.slice(0,1))}</i>${e(s)}</span>`).join('')}</div></article>`).join('')}</div></section>
-<section id="projects" class="section projects-section"><div class="container">${head('03','SELECTED PROJECTS','직접 만들고, 고민한 것들','프로젝트에 담긴 선택과 문제 해결 과정을 소개합니다.')}<div class="project-toolbar"><div class="project-filters" role="group" aria-label="프로젝트 분야 필터">${projectCategories.map(c=>`<button type="button" data-filter="${c}" aria-pressed="${c==='전체'}">${c}<span>${c==='전체'?projects.length:projects.filter(p=>p.category===c).length}</span></button>`).join('')}</div><span class="filter-result" role="status" aria-live="polite">${projects.length}개의 프로젝트</span></div><div class="projects-grid">${cards}</div></div></section>
-<div class="experience-area container"><section id="awards" class="experience-section">${head('04','AWARDS','도전의 기록')}${awards.length?`<div class="timeline">${awards.map(a=>`<article class="timeline-item"><span class="timeline-date mono">${e(a.date)}</span><h3>${e(a.title)}</h3><span class="timeline-organization">${e(a.organization)}</span><p>${e(a.description)}</p></article>`).join('')}</div>`:'<div class="empty-record"><span class="empty-record-icon">✧</span><h3>수상 내역 업데이트 예정</h3><p>수상명, 주최 기관, 수상 연도와<br>프로젝트의 성과를 담을 공간입니다.</p><span class="empty-record-label mono">A PLACE FOR MILESTONES</span></div>'}</section><section id="education" class="experience-section">${head('05','EDUCATION','성장을 쌓는 시간')}<div class="timeline">${education.map(i=>`<article class="timeline-item"><span class="timeline-mark">◇</span><span class="timeline-date mono">${e(i.period)}</span><h3>${e(i.title)}</h3><span class="timeline-organization">${e(i.organization)}</span><p>${e(i.description)}</p></article>`).join('')}</div></section></div>
-<section id="contact" class="contact-section container"><div class="contact-panel"><div class="contact-grid"><div class="contact-copy"><div class="eyebrow"><span class="section-number">06</span>CONTACT</div><h2>다음 이야기를<br><span>함께 만들어요.</span></h2><p>프로젝트에 관한 이야기부터 새로운 기회까지.<br>저의 작업과 가능성이 궁금하다면 연결해 주세요.</p><div class="contact-buttons"><a href="mailto:${e(profile.email)}" class="button button-primary">이메일 보내기 ↗</a><button type="button" data-copy="${e(profile.email)}" class="button button-secondary">이메일 복사</button></div></div><div class="contact-side"><div class="contact-spark" aria-hidden="true">✳</div><span class="mono">GOOD PEOPLE.<br>GREAT POSSIBILITIES.</span><div class="contact-links">${link(profile.github,'GitHub')}${link(profile.notion,'Notion')}</div></div></div><div class="contact-bottom"><span class="mono">LET’S BUILD SOMETHING MEANINGFUL.</span><span>${e(profile.email)}</span></div></div></section></main>
-<footer class="site-footer container"><a href="#hero" class="footer-brand">${e(profile.name)}<span class="accent">.</span></a><p>© ${new Date().getFullYear()} ${e(profile.name)}. React &amp; Vite portfolio · Local preview.</p><a href="#hero" class="back-to-top">Back to top ↑</a></footer>
-${templates}<dialog class="project-dialog" aria-labelledby="modal-project-title"></dialog><div class="toast" role="status" aria-live="polite"></div>
-<script>
-const dialog = document.querySelector('dialog');
-const menu = document.querySelector('.menu-toggle');
-const nav = document.querySelector('.main-nav');
-let previousFocus, previousOverflow = '', timer;
-function closeMenu(){nav.classList.remove('is-open');menu.setAttribute('aria-expanded','false');menu.setAttribute('aria-label','메뉴 열기');}
-menu.addEventListener('click',()=>{const open=nav.classList.toggle('is-open');menu.setAttribute('aria-expanded',String(open));menu.setAttribute('aria-label',open?'메뉴 닫기':'메뉴 열기');});
-nav.addEventListener('click',e=>{if(e.target.closest('a'))closeMenu();});
-window.addEventListener('keydown',e=>{if(e.key==='Escape'&&nav.classList.contains('is-open')){closeMenu();menu.focus();}});
-document.querySelectorAll('[data-project]').forEach(button=>button.addEventListener('click',()=>{previousFocus=button;previousOverflow=document.body.style.overflow;dialog.replaceChildren(document.getElementById('detail-'+button.dataset.project).content.cloneNode(true));document.body.style.overflow='hidden';dialog.showModal();dialog.scrollTop=0;}));
-dialog.addEventListener('click',e=>{if(e.target.closest('[data-close]'))dialog.close();if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
-dialog.addEventListener('close',()=>{document.body.style.overflow=previousOverflow;previousFocus?.focus();});
-document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>{const filter=button.dataset.filter;let count=0;document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));document.querySelectorAll('.project-card').forEach(card=>{card.hidden=filter!=='전체'&&card.dataset.category!==filter;if(!card.hidden)count++;card.classList.toggle('featured-project',card.dataset.featured==='true'&&filter==='전체');});document.querySelector('.filter-result').textContent=count+'개의 프로젝트';}));
-document.querySelector('[data-copy]').addEventListener('click',async e=>{const toast=document.querySelector('.toast'),value=e.currentTarget.dataset.copy;try{await navigator.clipboard.writeText(value);toast.textContent='이메일 주소를 복사했습니다.';}catch{toast.textContent='직접 복사해 주세요: '+value;}toast.classList.add('is-visible');clearTimeout(timer);timer=setTimeout(()=>toast.classList.remove('is-visible'),5000);});
-if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting)nav.querySelectorAll('a').forEach(a=>{const active=a.hash==='#'+entry.target.id;a.classList.toggle('is-active',active);if(active)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current');});}},{rootMargin:'-15% 0px -60% 0px',threshold:0});document.querySelectorAll('main section[id]').forEach(s=>observer.observe(s));}
-</script></body></html>`;
-
+const root = fileURLToPath(new URL('..', import.meta.url));
+const result = await build({
+  root,
+  configFile: false,
+  logLevel: 'warn',
+  define: { 'process.env.NODE_ENV': '"production"' },
+  plugins: [react(), {
+    name: 'local-preview-assets', enforce: 'pre',
+    transform(code, id) {
+      if (id.replaceAll('\\', '/').endsWith('/src/data/portfolio.js')) {
+        return code.replaceAll("'/projects/", "'./public/projects/");
+      }
+    },
+  }],
+  build: {
+    write: false, minify: 'esbuild', cssCodeSplit: false,
+    lib: { entry: fileURLToPath(new URL('../src/main.jsx', import.meta.url)), name: 'Portfolio', formats: ['iife'] },
+    rollupOptions: { output: { inlineDynamicImports: true } },
+  },
+});
+const outputs = (Array.isArray(result) ? result : [result]).flatMap(bundle => bundle.output);
+const js = outputs.filter(item => item.type === 'chunk').map(item => item.code).join('\n').replace(/<\/script/gi, '<\\/script');
+const css = outputs.filter(item => item.type === 'asset' && item.fileName.endsWith('.css')).map(item => item.source).join('\n');
+if (!js || !css) throw new Error('Preview bundle is incomplete');
+const html = `<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0d1117"><title>고재혁 · Developer Portfolio</title><link rel="icon" href="./public/favicon.svg"><style>${css}</style></head><body><div id="root"></div><script>${js}</script></body></html>`;
 await writeFile(new URL('../portfolio-preview.html', import.meta.url), html, 'utf8');
-console.log(`Created portfolio-preview.html: ${projects.length} projects, all sections, filters and details. No npm dependencies required.`);
+console.log('Created portfolio-preview.html from the production React components.');

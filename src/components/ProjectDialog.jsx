@@ -30,14 +30,14 @@ export default function ProjectDialog({ project, onClose }) {
   }
 
   return <dialog ref={dialogRef} className="project-dialog" aria-labelledby="modal-project-title" onCancel={event => { event.preventDefault(); onClose(); }} onClick={closeOnBackdrop}>
-    <div className="modal-topbar"><span>PROJECT {project.number} <span className="muted">/ CASE STUDY</span></span><button type="button" onClick={onClose} className="icon-button" aria-label="프로젝트 상세 닫기"><Icon name="close" size={22} /></button></div>
+    <div className="modal-topbar"><span>projects / {project.id} <span className="muted">/ README.md</span></span><button type="button" onClick={onClose} className="icon-button" aria-label="프로젝트 상세 닫기"><Icon name="close" size={22} /></button></div>
     <div className="modal-content">
       <span className="draft-label">{project.category} · PROJECT {project.number}</span>
       <h2 id="modal-project-title">{project.title}</h2>
       <p className="modal-subtitle">{project.summary}</p>
-      <ProjectVisual project={project} compact />
       <dl className="modal-metadata"><div><dt>기간</dt><dd>{project.period || '추가 정리 예정'}</dd></div><div><dt>역할</dt><dd>{project.role || '기여 범위 정리 중'}</dd></div><div><dt>프로젝트 기술</dt><dd>{project.stack.join(', ')}</dd></div></dl>
       {project.contribution && <div className="contribution-note"><span>기여 범위</span><p>{project.contribution}</p></div>}
+      <ProjectVisual project={project} />
       <DetailSection number="01" title="KEY FEATURES"><h3>어떤 경험을 만들었나요?</h3>{project.features.length ? <ul className="detail-list">{project.features.map(item => <li key={item}><Icon name="check" size={17} />{item}</li>)}</ul> : <p className="content-pending">실제로 구현한 주요 기능과 사용자 흐름을 추가할 예정입니다.</p>}</DetailSection>
       {project.challenge && project.solution && <DetailSection number="02" title="DESIGN & IMPLEMENTATION"><h3>문제를 바라보는 방식</h3><div className="problem-solution"><div><span>THE CHALLENGE</span><p>{project.challenge}</p></div><div><span>THE APPROACH</span><p>{project.solution}</p></div></div></DetailSection>}
       <DetailSection number="03" title="OUTCOMES"><h3>결과와 배운 점</h3>{project.outcomes.length ? <ul className="detail-list">{project.outcomes.map(item => <li key={item}><Icon name="spark" size={17} />{item}</li>)}</ul> : <p className="content-pending">검증 가능한 성과와 프로젝트를 통해 배운 점을 추가할 예정입니다.</p>}</DetailSection>

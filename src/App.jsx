@@ -1,176 +1,121 @@
 import { useEffect, useRef, useState } from 'react';
 import { profile, projects, projectCategories, skillGroups, principles, awards, education } from './data/portfolio';
 import Icon from './components/Icon';
-import ProjectVisual from './components/ProjectVisual';
 import ProjectDialog from './components/ProjectDialog';
 
 const navigation = [
-  ['about', 'About'], ['skills', 'Skills'], ['projects', 'Projects'],
-  ['awards', 'Awards'], ['education', 'Education'], ['contact', 'Contact'],
+  { id: 'hero', file: 'README.md', label: '시작', icon: 'book' },
+  { id: 'projects', file: 'projects/', label: '프로젝트', icon: 'folder' },
+  { id: 'skills', file: 'stack.json', label: '기술 스택', icon: 'code' },
+  { id: 'about', file: 'about.md', label: '소개', icon: 'person' },
+  { id: 'education', file: 'education.md', label: '교육', icon: 'education' },
+  { id: 'contact', file: 'contact.md', label: '연락', icon: 'mail' },
 ];
+const categories = { '웹': 'Web', '모바일': 'Mobile', '게임': 'Game' };
 
-function SectionHeading({ number, label, title, description, children }) {
-  return <div className="section-heading"><div><div className="eyebrow"><span className="section-number">{number}</span>{label}</div><h2>{title}<span className="accent">.</span></h2>{description && <p>{description}</p>}</div>{children}</div>;
+function SectionHeading({ file, title, description, children }) {
+  return <div className="section-heading"><div><span className="section-path"><span aria-hidden="true">~/</span>{file}</span><h2>{title}</h2>{description && <p>{description}</p>}</div>{children}</div>;
+}
+function ExternalLink({ href, children, className = '', ...props }) {
+  return <a href={href} target="_blank" rel="noopener noreferrer" className={className} {...props}>{children}<span className="sr-only"> (새 창에서 열기)</span></a>;
 }
 
-function App() {
+export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
   const [selectedProject, setSelectedProject] = useState(null);
   const [projectFilter, setProjectFilter] = useState('전체');
+  const [query, setQuery] = useState('');
   const [toast, setToast] = useState('');
   const [copied, setCopied] = useState(false);
   const menuButtonRef = useRef(null);
   const toastTimeoutRef = useRef(null);
-  const visibleProjects = projects.filter(project => projectFilter === '전체' || project.category === projectFilter);
+  const projectSearchRef = useRef(null);
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const visibleProjects = projects.filter(project => (projectFilter === '전체' || project.category === projectFilter) && `${project.title} ${project.summary} ${project.role} ${project.stack.join(' ')}`.toLocaleLowerCase().includes(normalizedQuery));
+  const currentFile = navigation.find(item => item.id === activeSection)?.file || 'README.md';
 
   useEffect(() => {
     if (!('IntersectionObserver' in window)) return;
     const observer = new IntersectionObserver(entries => {
       const visible = entries.filter(entry => entry.isIntersecting);
       if (visible.length) setActiveSection(visible[0].target.id);
-    }, { rootMargin: '-15% 0px -60% 0px', threshold: 0 });
+    }, { rootMargin: '-12% 0px -65% 0px', threshold: 0 });
     document.querySelectorAll('main section[id]').forEach(section => observer.observe(section));
     return () => observer.disconnect();
   }, []);
-
   useEffect(() => {
-    if (!menuOpen) return;
-    const dismiss = event => {
-      if (event.key === 'Escape') { setMenuOpen(false); menuButtonRef.current?.focus(); }
+    const onKeyDown = event => {
+      if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); menuButtonRef.current?.focus(); }
+      const isTyping = event.target instanceof HTMLElement && (event.target.matches('input, textarea, select') || event.target.isContentEditable);
+      if (event.key === '/' && !isTyping && !event.ctrlKey && !event.metaKey && !event.altKey && !selectedProject) {
+        event.preventDefault(); setMenuOpen(false);
+        document.getElementById('projects')?.scrollIntoView();
+        projectSearchRef.current?.focus({ preventScroll: true });
+      }
     };
-    window.addEventListener('keydown', dismiss);
-    return () => window.removeEventListener('keydown', dismiss);
-  }, [menuOpen]);
-
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen, selectedProject]);
   useEffect(() => () => clearTimeout(toastTimeoutRef.current), []);
 
   async function copyContact() {
-    const value = profile.email || profile.github;
-    try {
-      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      setToast(profile.email ? '이메일 주소를 복사했습니다.' : 'GitHub 주소를 복사했습니다.');
-    } catch {
-      setToast(`직접 복사해 주세요: ${value}`);
-    }
+    try { await navigator.clipboard.writeText(profile.email); setCopied(true); setToast('이메일 주소를 복사했습니다.'); }
+    catch { setToast(`직접 복사해 주세요: ${profile.email}`); }
     clearTimeout(toastTimeoutRef.current);
     toastTimeoutRef.current = setTimeout(() => { setToast(''); setCopied(false); }, 5000);
   }
+  function navigate() { setMenuOpen(false); }
 
   return <>
     <a className="skip-link" href="#main">본문으로 이동</a>
-    <header className="site-header">
-      <div className="header-inner container">
-        <a className="brand" href="#hero" aria-label="고재혁 포트폴리오 처음으로"><span className="brand-symbol" aria-hidden="true">j<span>h</span></span><span>{profile.name}<span className="accent">.</span><small>DEVELOPER PORTFOLIO</small></span></a>
-        <nav id="main-navigation" className={`main-nav ${menuOpen ? 'is-open' : ''}`} aria-label="주요 메뉴">{navigation.map(([id, label]) => <a href={`#${id}`} key={id} onClick={() => setMenuOpen(false)} className={activeSection === id ? 'is-active' : ''} aria-current={activeSection === id ? 'location' : undefined}>{label}</a>)}</nav>
-        <a className="header-github icon-button" href={profile.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub 프로필 새 창에서 열기"><Icon name="github" size={21} /></a>
-        <button ref={menuButtonRef} type="button" className="menu-toggle icon-button" aria-label={menuOpen ? '메뉴 닫기' : '메뉴 열기'} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(value => !value)}><Icon name={menuOpen ? 'close' : 'menu'} size={24} /></button>
-      </div>
-    </header>
+    <header className="mobile-header"><a href="#hero" onClick={navigate} className="mobile-brand"><Icon name="terminal" size={20} /><strong>{profile.name}</strong><span>/ portfolio</span></a><button ref={menuButtonRef} type="button" className="icon-button" aria-label={menuOpen ? '메뉴 닫기' : '메뉴 열기'} aria-expanded={menuOpen} aria-controls="workspace-navigation" onClick={() => setMenuOpen(open => !open)}><Icon name={menuOpen ? 'close' : 'menu'} /></button></header>
+    {menuOpen && <button type="button" className="sidebar-backdrop" aria-label="메뉴 닫기" onClick={navigate} />}
+    <aside className={`workspace-sidebar ${menuOpen ? 'is-open' : ''}`}>
+      <a className="workspace-brand" href="#hero" onClick={navigate}><span className="brand-mark"><Icon name="terminal" size={22} /></span><span>{profile.name}<small>DEVELOPER PORTFOLIO</small></span></a>
+      <div className="sidebar-profile"><span className="profile-initial" aria-hidden="true">고</span><strong>{profile.name}</strong><span>Frontend &amp; Mobile<br />Developer</span><ExternalLink href={profile.github} className="profile-handle">@kojaehyuk12<Icon name="arrow" size={12} /></ExternalLink></div>
+      <nav id="workspace-navigation" aria-label="포트폴리오 메뉴"><div className="nav-label">EXPLORER<span>{navigation.length}</span></div><div className="explorer-root"><Icon name="chevron" size={13} /><Icon name="folder" size={15} />portfolio</div><div className="file-navigation">{navigation.map(item => <a href={`#${item.id}`} key={item.id} onClick={navigate} className={activeSection === item.id ? 'is-active' : ''} aria-current={activeSection === item.id ? 'location' : undefined}><Icon name={item.icon} size={16} /><span>{item.file}</span><span className="sr-only"> · {item.label}</span>{item.id === 'projects' && <small>{projects.length}</small>}</a>)}</div></nav>
+      <div className="sidebar-links"><div className="nav-label">ELSEWHERE</div><ExternalLink href={profile.github}><Icon name="github" size={17} />GitHub<Icon name="arrow" size={13} /></ExternalLink><ExternalLink href={profile.notion}><Icon name="book" size={17} />개발 기록<Icon name="arrow" size={13} /></ExternalLink></div>
+      <div className="sidebar-bottom"><Icon name="branch" size={15} /><span>main</span><span className="sidebar-location">웹 · 모바일 · 게임</span></div>
+    </aside>
 
-    <main id="main">
-      <section id="hero" className="hero container">
-        <div className="hero-grid">
-          <div className="hero-copy">
-            <div className="hero-kicker"><span className="kicker-line" />FRONTEND & MOBILE DEVELOPER</div>
-            <h1>{profile.headline[0]}<br /><span>{profile.headline[1]}</span></h1>
-            <p className="hero-intro">안녕하세요, 개발자 <strong>{profile.name}</strong>입니다.</p>
-            <p className="hero-description">웹과 모바일에서 사용자의 다음 행동을 고민합니다.<br />흐름을 설계하고, 동작하는 서비스로 구현합니다.</p>
-            <div className="hero-actions"><a className="button button-primary" href="#projects">프로젝트 둘러보기<Icon name="down" size={17} /></a><a className="button button-secondary" href={profile.github} target="_blank" rel="noopener noreferrer"><Icon name="github" size={19} />GitHub<span className="sr-only">새 창에서 열기</span></a></div>
-            <div className="hero-footnote"><span>THINK DEEPLY.</span><span>BUILD THOUGHTFULLY.</span></div>
+    <div className="workspace-main">
+      <div className="workspace-topbar"><div className="breadcrumb"><span>portfolio</span><Icon name="chevron" size={13} /><span>{currentFile}</span></div><ExternalLink href={profile.github}><Icon name="github" size={15} /><span>GitHub 프로필</span><Icon name="arrow" size={13} /></ExternalLink></div>
+      <main id="main" className="content-container">
+        <section id="hero" className="readme-section">
+          <div className="file-tab"><Icon name="book" size={16} /><span>README.md</span><span className="file-tab-detail">고재혁의 개발 기록</span></div>
+          <div className="readme-panel">
+            <div className="readme-intro"><div className="hero-kicker"><span />FRONTEND &amp; MOBILE DEVELOPER</div><h1>안녕하세요,<br /><strong>개발자 고재혁</strong>입니다<span className="accent">.</span></h1><p className="hero-description">화면의 흐름을 설계하고,<br />웹과 모바일에서 동작하는 서비스로 구현합니다.</p><div className="hero-tech"><span>React</span><span>Vue</span><span>Kotlin</span><span>Jetpack Compose</span></div><div className="hero-actions"><a className="button button-primary" href="#projects"><Icon name="folder" size={17} />프로젝트 보기<Icon name="down" size={15} /></a><a className="button button-secondary" href={`mailto:${profile.email}`}><Icon name="mail" size={17} />연락하기</a></div></div>
+            <div className="profile-code" aria-label="개발자 프로필 요약"><div className="code-file"><Icon name="code" size={15} />profile.json<span>JSON</span></div><div className="code-lines"><div><span>01</span><code>{'{'}</code></div><div><span>02</span><code>&nbsp; <b>"name"</b>: <em>"고재혁"</em>,</code></div><div><span>03</span><code>&nbsp; <b>"focus"</b>: [</code></div><div><span>04</span><code>&nbsp; &nbsp; <em>"Frontend"</em>,</code></div><div><span>05</span><code>&nbsp; &nbsp; <em>"Android"</em></code></div><div><span>06</span><code>&nbsp; ],</code></div><div><span>07</span><code>&nbsp; <b>"experience"</b>: <em>"FE Lead"</em>,</code></div><div><span>08</span><code>&nbsp; <b>"projects"</b>: <i>{projects.length}</i></code></div><div><span>09</span><code>{'}'}</code></div></div><div className="code-caption"><Icon name="check" size={13} />경험을 코드와 기록으로 남깁니다.</div></div>
           </div>
+          <div className="readme-summary"><div><span className="summary-number">{String(projects.length).padStart(2, '0')}</span><span>프로젝트<small>직접 구현하고 협업한 경험</small></span></div><div><span className="summary-number">03</span><span>개발 영역<small>Web · Mobile · Game</small></span></div><div><Icon name="education" size={27} /><span>SSAFY 13기<small>팀 프로젝트와 성장의 기록</small></span></div></div>
+        </section>
 
-          <div className="hero-visual">
-            <div className="code-window" aria-label="고재혁 개발자 소개 카드">
-              <div className="code-window-bar"><div className="window-dots" aria-hidden="true"><i /><i /><i /></div><span>developer.js</span><Icon name="code" size={17} /></div>
-              <div className="code-content" aria-hidden="true">
-                <div><span className="line-number">01</span><span className="code-comment">// A little introduction</span></div>
-                <div><span className="line-number">02</span><span><b className="code-violet">const</b> <b className="code-blue">developer</b> = {'{'}</span></div>
-                <div><span className="line-number">03</span><span>&nbsp; name: <b className="code-lime">'{profile.name}'</b>,</span></div>
-                <div><span className="line-number">04</span><span>&nbsp; focus: <b className="code-lime">'User experience'</b>,</span></div>
-                <div><span className="line-number">05</span><span>&nbsp; buildWith: [</span></div>
-                <div><span className="line-number">06</span><span>&nbsp;&nbsp;&nbsp; <b className="code-lime">'React & Vue'</b>,</span></div>
-                <div><span className="line-number">07</span><span>&nbsp;&nbsp;&nbsp; <b className="code-lime">'Kotlin & Compose'</b>,</span></div>
-                <div><span className="line-number">08</span><span>&nbsp;&nbsp;&nbsp; <b className="code-lime">'Unity & C#'</b></span></div>
-                <div><span className="line-number">09</span><span>&nbsp; ],</span></div>
-                <div><span className="line-number">10</span><span>&nbsp; next: <b className="code-lime">'A new challenge'</b></span></div>
-                <div><span className="line-number">11</span><span>{'}'};</span></div>
-                <div className="last-code-line"><span className="line-number">12</span><span><b className="code-blue">developer</b>.<b className="code-yellow">build</b>();<i className="code-caret" /></span></div>
-              </div>
-              <div className="code-window-bottom"><span><Icon name="check" size={13} /> Ready to create</span><span>JavaScript · UTF-8</span></div>
-            </div>
-            <div className="hero-sticker"><span className="sticker-icon"><Icon name="spark" size={22} /></span><div><b>Small details. Big difference.</b><span>작은 디테일이 더 나은 경험을 만듭니다.</span></div></div>
-            <span className="visual-corner" aria-hidden="true">{'{ }'}</span>
-          </div>
-        </div>
-        <div className="hero-bottom"><div><span className="mono">01 — 07</span><span>개발자로서의 생각과 기록</span></div><a href="#about" className="scroll-hint">SCROLL TO EXPLORE<Icon name="down" size={15} /></a></div>
-      </section>
-
-      <section id="about" className="section about-section">
-        <div className="container">
-          <SectionHeading number="01" label="ABOUT ME" title={profile.aboutTitle} />
-          <div className="about-grid">
-            <div className="about-name-card">
-              <span className="name-card-label">안녕하세요.</span>
-              <div className="name-card-identity">
-                <h3>{profile.name}<span className="accent">.</span></h3>
-                <p>{profile.roleKorean}</p>
-              </div>
-              <div className="name-card-bottom"><span>화면 설계부터 기능 구현까지</span><Icon name="code" size={23} /></div>
-            </div>
-            <div className="about-text">
-              <h3>{profile.aboutLead.map(line => <span key={line}>{line}</span>)}</h3>
-              {profile.about.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
-              <a href={profile.notion} target="_blank" rel="noopener noreferrer" className="inline-link about-notion-link"><Icon name="book" size={18} />개발 과정과 기록 보기<Icon name="arrow" size={17} /><span className="sr-only"> — Notion, 새 창에서 열기</span></a>
-            </div>
-          </div>
-          <div className="principle-grid">{principles.map((principle, index) => <article className="principle" key={principle.title}><div className="principle-top"><Icon name={principle.icon} size={24} /><span className="mono">0{index + 1}</span></div><h3>{principle.title}</h3><p>{principle.text}</p></article>)}</div>
-        </div>
-      </section>
-
-      <section id="skills" className="section skills-section container">
-        <SectionHeading number="02" label="SKILLS" title="아이디어를 구현하는 도구들" description="웹, 모바일, 게임 프로젝트에서 사용한 기술입니다." />
-        <div className="skills-grid">{skillGroups.map(group => <article className="skill-card" key={group.title}><div className="skill-icon"><Icon name={group.icon} size={26} /></div><h3>{group.title}</h3><p>{group.description}</p><div className="skill-tags">{group.skills.map(skill => <span key={skill}><i aria-hidden="true">{skill === 'React' ? '⚛' : skill === 'JavaScript' ? 'JS' : skill === 'Java' ? 'J' : skill === 'Git' ? 'G' : skill.slice(0, 1)}</i>{skill}</span>)}</div></article>)}</div>
-      </section>
-
-      <section id="projects" className="section projects-section">
-        <div className="container">
-          <SectionHeading number="03" label="SELECTED PROJECTS" title="직접 만들고, 고민한 것들" description="프로젝트에 담긴 선택과 문제 해결 과정을 소개합니다."><span className="project-count">PROJECTS <b>{String(projects.length).padStart(2, '0')}</b></span></SectionHeading>
-          <div className="project-toolbar"><div className="project-filters" role="group" aria-label="프로젝트 분야 필터">{projectCategories.map(category => <button key={category} type="button" aria-pressed={projectFilter === category} onClick={() => setProjectFilter(category)}>{category}<span>{category === '전체' ? projects.length : projects.filter(project => project.category === category).length}</span></button>)}</div><span className="filter-result" role="status" aria-live="polite">{visibleProjects.length}개의 프로젝트</span></div>
-          <div className="projects-grid">{visibleProjects.map(project => <article className={`project-card ${project.featured && projectFilter === '전체' ? 'featured-project' : ''}`} key={project.id}>
-            <button className="project-cover-button" type="button" onClick={() => setSelectedProject(project)} aria-label={`${project.title} 프로젝트 상세 보기`}><ProjectVisual project={project} /><span className="cover-open"><Icon name="arrow" size={23} /></span></button>
-            <div className="project-card-content"><div className="project-title-row"><div><span className="project-subtitle">{project.subtitle}</span><h3>{project.title}</h3></div><span className="project-number mono">/{project.number}</span></div><p className="project-summary">{project.summary}</p>
-              <dl className="project-metadata"><div><dt><Icon name="calendar" size={14} />기간</dt><dd>{project.period || '추가 정리 예정'}</dd></div><div><dt><Icon name="person" size={14} />역할</dt><dd>{project.role || '기여 범위 정리 중'}</dd></div></dl>
-              <div className="project-stack">{project.stack.length ? project.stack.map(tech => <span key={tech}>{tech}</span>) : <span className="pending-tag">기술 스택 입력 예정</span>}</div>
-              <div className="project-facts"><div><span>주요 기능</span><p>{project.features.length ? project.features[0] : '구현한 핵심 기능을 정리할 공간입니다.'}</p></div><div><span>성과</span><p>{project.outcomes.length ? project.outcomes[0] : '검증 가능한 결과와 배운 점을 추가합니다.'}</p></div></div>
-              <div className="project-actions"><a href={project.githubUrl || profile.github} target="_blank" rel="noopener noreferrer" aria-label={`${project.title} ${project.githubUrl ? 'GitHub 저장소' : 'GitHub 프로필'} 새 창에서 열기`}><Icon name="github" size={17} />{project.githubUrl ? 'GitHub' : 'GitHub 프로필'}</a><button type="button" onClick={() => setSelectedProject(project)}>상세보기<Icon name="arrow" size={17} /></button></div>
-            </div>
+        <section id="projects" className="content-section">
+          <SectionHeading file="projects/" title="프로젝트" description="무엇을 만들었고, 어떤 문제를 풀었는지 기록했습니다."><span className="section-count">{String(projects.length).padStart(2, '0')} projects</span></SectionHeading>
+          <div className="project-toolbar"><div className="project-filters" role="group" aria-label="프로젝트 분야 필터">{projectCategories.map(category => <button key={category} type="button" aria-pressed={projectFilter === category} onClick={() => setProjectFilter(category)}>{category}<span>{category === '전체' ? projects.length : projects.filter(p => p.category === category).length}</span></button>)}</div><div className="project-search"><Icon name="search" size={16} /><input ref={projectSearchRef} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="프로젝트 또는 기술 검색" aria-label="프로젝트 또는 기술 검색" aria-keyshortcuts="/" /><kbd aria-hidden="true">/</kbd></div></div>
+          <p className="sr-only" role="status" aria-live="polite">{visibleProjects.length}개의 프로젝트</p>
+          <div className="repository-grid">{visibleProjects.map(project => <article className={`repository-card ${Number(project.number) <= 2 ? 'is-featured' : ''}`} key={project.id}>
+            <div className="repository-top"><span className={`project-category category-${categories[project.category].toLowerCase()}`}><Icon name="folder" size={18} />{categories[project.category]}</span>{Number(project.number) <= 2 ? <span className="featured-label"><Icon name="pin" size={12} />대표 프로젝트</span> : <span className="project-index">/{project.number}</span>}</div>
+            <h3><button type="button" onClick={() => setSelectedProject(project)}>{project.title}<Icon name="arrow" size={18} /></button></h3><p className="project-subtitle">{project.subtitle}</p><p className="project-description">{project.summary}</p>
+            <dl className="project-metadata"><div><dt>기간</dt><dd>{project.period}</dd></div><div><dt>역할</dt><dd>{project.role}</dd></div></dl><div className="tech-tags">{project.stack.map(tech => <span key={tech}>{tech}</span>)}</div>
+            <div className="project-actions"><ExternalLink href={project.githubUrl || profile.github}><Icon name="github" size={16} />{project.githubUrl ? '소스 코드' : 'GitHub 프로필'}</ExternalLink><button type="button" onClick={() => setSelectedProject(project)} aria-label={`${project.title} 구현 상세 보기`}>구현 상세<Icon name="chevron" size={16} /></button></div>
           </article>)}</div>
-        </div>
-      </section>
-
-      <div className="experience-area container">
-        <section id="awards" className="experience-section">
-          <SectionHeading number="04" label="AWARDS" title="도전의 기록"><Icon name="trophy" size={26} /></SectionHeading>
-          {awards.length ? <div className="timeline">{awards.map((award, index) => <article key={`${award.title}-${index}`} className="timeline-item"><span className="timeline-mark"><Icon name="trophy" size={17} /></span><span className="timeline-date mono">{award.date}</span><h3>{award.title}</h3><span className="timeline-organization">{award.organization}</span><p>{award.description}</p></article>)}</div> : <div className="empty-record"><span className="empty-record-icon"><Icon name="trophy" size={29} /></span><h3>수상 내역 업데이트 예정</h3><p>수상명, 주최 기관, 수상 연도와<br />프로젝트의 성과를 담을 공간입니다.</p><span className="empty-record-label mono">A PLACE FOR MILESTONES</span></div>}
+          {!visibleProjects.length && <div className="empty-search"><Icon name="search" size={27} /><h3>일치하는 프로젝트가 없습니다.</h3><p>다른 기술명으로 검색하거나 필터를 초기화해 보세요.</p><button type="button" className="button button-secondary" onClick={() => { setQuery(''); setProjectFilter('전체'); }}>전체 프로젝트 보기</button></div>}
         </section>
-        <section id="education" className="experience-section">
-          <SectionHeading number="05" label="EDUCATION" title="성장을 쌓는 시간"><Icon name="education" size={29} /></SectionHeading>
-          {education.length ? <div className="timeline">{education.map((item, index) => <article key={`${item.title}-${index}`} className="timeline-item"><span className="timeline-mark"><Icon name="education" size={18} /></span><span className="timeline-date mono">{item.period}</span><h3>{item.title}</h3><span className="timeline-organization">{item.organization}</span><p>{item.description}</p></article>)}</div> : <div className="empty-record"><span className="empty-record-icon"><Icon name="education" size={31} /></span><h3>교육·학력 정보 업데이트 예정</h3><p>학교, 교육 과정, 학습 기간과<br />성장의 과정을 정리할 공간입니다.</p><span className="empty-record-label mono">ALWAYS A WORK IN PROGRESS</span></div>}
-        </section>
-      </div>
 
-      <section id="contact" className="contact-section container">
-        <div className="contact-panel"><div className="contact-grid"><div className="contact-copy"><div className="eyebrow"><span className="section-number">06</span>CONTACT</div><h2>다음 이야기를<br /><span>함께 만들어요.</span></h2><p>프로젝트에 관한 이야기부터 새로운 기회까지.<br />저의 작업과 가능성이 궁금하다면 연결해 주세요.</p><div className="contact-buttons">{profile.email ? <a href={`mailto:${profile.email}`} className="button button-primary"><Icon name="mail" size={18} />이메일 보내기<Icon name="arrow" size={17} /></a> : <a href={profile.github} target="_blank" rel="noopener noreferrer" className="button button-primary"><Icon name="github" size={18} />GitHub에서 만나기<Icon name="arrow" size={17} /><span className="sr-only">새 창에서 열기</span></a>}<button type="button" onClick={copyContact} className="button button-secondary"><Icon name={copied ? 'check' : 'copy'} size={17} />{copied ? '복사 완료' : profile.email ? '이메일 복사' : '프로필 주소 복사'}</button></div></div><div className="contact-side"><div className="contact-spark" aria-hidden="true">✳</div><span className="mono">GOOD PEOPLE.<br />GREAT POSSIBILITIES.</span><div className="contact-links"><a href={profile.github} target="_blank" rel="noopener noreferrer">GitHub<Icon name="arrow" size={16} /><span className="sr-only">새 창에서 열기</span></a><a href={profile.notion} target="_blank" rel="noopener noreferrer">Notion<Icon name="arrow" size={16} /><span className="sr-only">새 창에서 열기</span></a>{profile.resumeUrl && <a href={profile.resumeUrl} target="_blank" rel="noopener noreferrer">Resume<Icon name="arrow" size={16} /><span className="sr-only">새 창에서 열기</span></a>}</div></div></div><div className="contact-bottom"><span className="mono">LET’S BUILD SOMETHING MEANINGFUL.</span><span>{profile.email || 'github.com/kojaehyuk12'}</span></div></div>
-      </section>
-    </main>
+        <section id="skills" className="content-section"><SectionHeading file="stack.json" title="기술 스택" description="프로젝트에서 직접 사용하며 익힌 기술입니다." /><div className="stack-table">{skillGroups.map((group, index) => <article className="stack-row" key={group.title}><div className={`stack-icon stack-${index}`}><Icon name={group.icon} size={22} /></div><div className="stack-label"><h3>{['Web', 'Mobile', 'Game'][index]}</h3><p>{group.description}</p></div><div className="tech-tags">{group.skills.map(skill => <span key={skill}>{skill}</span>)}</div></article>)}</div></section>
 
-    <footer className="site-footer container"><a href="#hero" className="footer-brand">{profile.name}<span className="accent">.</span></a><p>© {new Date().getFullYear()} {profile.name}. Built with React & Vite.</p><a href="#hero" className="back-to-top">Back to top<Icon name="up" size={15} /></a></footer>
+        <section id="about" className="content-section"><SectionHeading file="about.md" title="개발하는 방식" /><div className="about-layout"><div className="about-copy"><h3>{profile.aboutTitle}.</h3>{profile.about.map(paragraph => <p key={paragraph}>{paragraph}</p>)}<ExternalLink className="inline-link" href={profile.notion}><Icon name="book" size={16} />개발 과정과 기록 보기<Icon name="arrow" size={15} /></ExternalLink></div><div className="principle-list">{principles.map((principle, index) => <article key={principle.title}><span className="principle-number">0{index + 1}</span><div><h3>{principle.title}</h3><p>{principle.text}</p></div></article>)}</div></div></section>
+
+        <section id="education" className="content-section"><SectionHeading file="education.md" title="교육과 성장" /><div className="education-list">{education.map(item => <article key={item.title} className="education-item"><div className="education-date"><Icon name="education" size={20} /><span>{item.period}</span></div><div><h3>{item.title}</h3><span className="education-organization">{item.organization}</span><p>{item.description}</p></div></article>)}</div>{awards.length > 0 && <div className="awards-list">{awards.map(award => <article key={award.title}><Icon name="trophy" size={20} /><div><h3>{award.title}</h3><p>{award.date} · {award.organization}</p><p>{award.description}</p></div></article>)}</div>}</section>
+
+        <section id="contact" className="content-section contact-section"><SectionHeading file="contact.md" title="함께 만들 다음 프로젝트" description="프로젝트에 관한 이야기나 새로운 기회가 있다면 연락해 주세요." /><div className="contact-terminal"><div className="terminal-label"><Icon name="terminal" size={17} />연락처<span>contact</span></div><div className="contact-content"><div><span className="terminal-prompt" aria-hidden="true">$</span><a href={`mailto:${profile.email}`} className="contact-email">{profile.email}</a><button type="button" className="icon-button" onClick={copyContact} aria-label={copied ? '이메일 복사 완료' : '이메일 주소 복사'}><Icon name={copied ? 'check' : 'copy'} size={17} /></button></div><div className="contact-links"><ExternalLink href={profile.github}><Icon name="github" size={16} />GitHub<Icon name="arrow" size={14} /></ExternalLink><ExternalLink href={profile.notion}><Icon name="book" size={16} />Notion<Icon name="arrow" size={14} /></ExternalLink></div></div></div></section>
+        <footer className="site-footer"><span>© {new Date().getFullYear()} {profile.name}<span className="footer-stack">Built with React &amp; Vite</span></span><a href="#hero">맨 위로<Icon name="up" size={14} /></a></footer>
+      </main>
+      <div className="workspace-status"><span><Icon name="branch" size={13} />main</span><span><span className="status-dot" />Frontend &amp; Mobile</span><span className="status-right">UTF-8<span>한국어</span></span></div>
+    </div>
     {selectedProject && <ProjectDialog project={selectedProject} onClose={() => setSelectedProject(null)} />}
-    <div className={`toast ${toast ? 'is-visible' : ''}`} role="status" aria-live="polite">{toast && <><Icon name={copied ? 'check' : 'link'} size={18} /><span>{toast}</span><button type="button" aria-label="알림 닫기" onClick={() => setToast('')}><Icon name="close" size={17} /></button></>}</div>
+    <div className={`toast ${toast ? 'is-visible' : ''}`} role="status" aria-live="polite">{toast && <><Icon name={copied ? 'check' : 'mail'} size={17} /><span>{toast}</span><button type="button" className="icon-button" aria-label="알림 닫기" onClick={() => setToast('')}><Icon name="close" size={16} /></button></>}</div>
   </>;
 }
-
-export default App;
