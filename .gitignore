@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.npm-cache/
+.verification/
+.env
+.env.*
+!.env.example
+*.local
+.DS_Store
+*.zip
+*.tar.gz
+포트폴리오.pdf
