@@ -2,6 +2,8 @@ node_modules/
 dist/
 .npm-cache/
 .verification/
+tmp/pdfs/
+output/pdf/
 .env
 .env.*
 !.env.example

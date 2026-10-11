@@ -35,14 +35,15 @@ npm.cmd run preview
 
 GitHub 저장소는 `kojaehyuk12/my-portfolio`이며 `main` 브랜치가 Vercel 프로덕션 배포에 연결되어 있습니다. `vercel.json`에서 Vite 빌드와 `dist/` 배포를 지정합니다. React 진입점인 `index.html`은 그대로 사용하고, `portfolio-preview.html`은 로컬 검토본으로 유지합니다.
 
-**확인 상태:** 프로덕션 빌드와 오프라인 미리보기 생성이 통과했습니다. 두 빌드의 DOM 검증에서 7개 프로젝트, 분야 필터·검색·초기화, 검색 단축키, 모든 상세 모달, 포커스 복귀, 모바일 메뉴, 이메일 복사와 이미지 경로를 확인했습니다. 연결된 브라우저가 없어 화면 렌더링과 실제 모바일 배치는 시각 검증하지 못했습니다.
+**확인 상태:** 프로덕션 빌드와 오프라인 미리보기 생성이 통과했습니다. 두 빌드의 DOM 검증에서 7개 프로젝트, 분야 필터·검색·초기화, 검색 단축키, 모든 상세 모달, 포커스 복귀, 모바일 메뉴, 이메일 복사와 이미지 경로를 확인했습니다. 6개 구조도와 12개 이슈 설명도 검증했습니다. 실제 Edge의 1440px·390px 화면에서 구조도·사례 설명의 가로 넘침과 Escape 닫기를 확인하고, Last Dance의 PC·모바일 캡처를 검토했습니다.
 
 ## 반영한 내용
 
 - README / Projects / Stack / About / Education / Contact
 - 뜀오, Last Dance, Neko Adventure, MindMaze Escape, AI 영화추천, What Happens Here, 영화 평점 비교 플랫폼
 - 프로젝트 기간·역할·기술·기능·성과 및 개인 기여 설명
-- 프로젝트 카드의 문제·해결 요약, 상세보기의 함수·상태 구조와 처리 흐름을 근거로 한 구현 설명
+- 프로젝트 카드의 문제·해결 요약, 상세보기의 개요 → 담당 아키텍처 → 문제·판단·해결·결과 구성
+- 담당 영역과 외부 연동 대상을 구분한 6개 반응형 구조도, 원본 코드에 근거한 12개 이슈 설명
 - 전체 / 웹 / 모바일 / 게임 필터, 프로젝트·기술 검색, 상세 모달, GitHub·Notion 링크
 - 파일 탐색 사이드바, 차분한 다크 테마, 상세보기의 원본 자료, 반응형 구성
 - 이메일 연락·복사, `/` 검색 단축키, 키보드 포커스·Escape 닫기·모션 감소 설정 지원
@@ -54,9 +55,11 @@ GitHub 저장소는 `kojaehyuk12/my-portfolio`이며 `main` 브랜치가 Vercel 
 | 파일 | 내용 |
 | --- | --- |
 | `src/data/portfolio.js` | 소개, 연락처, 기술, 프로젝트, 수상, 교육 |
+| `src/data/caseStudies.js` | 프로젝트별 아키텍처 흐름과 문제 해결 사례 |
 | `src/App.jsx` | 전체 화면, 메뉴, 필터, 연락 기능 |
 | `src/components/ProjectVisual.jsx` | 상세보기의 실제 화면·에셋과 설명 |
 | `src/components/ProjectDialog.jsx` | 상세 모달 |
+| `src/components/ProjectArchitecture.jsx` | 담당 영역·외부 연동 대상·데이터 흐름 구조도 |
 | `src/styles.css` | 다크 테마와 반응형 스타일 |
 | `public/projects/` | 선별한 프로젝트 이미지 |
 | `scripts/make-preview.mjs` | React 앱을 서버 없이 여는 HTML로 묶는 생성기 |

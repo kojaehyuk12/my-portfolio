@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { profile, projects, projectCategories, skillGroups, principles, awards, education } from './data/portfolio';
 import Icon from './components/Icon';
 import ProjectDialog from './components/ProjectDialog';
+import { caseStudies } from './data/caseStudies';
 
 const navigation = [
   { id: 'hero', file: 'README.md', label: '시작', icon: 'book' },
@@ -92,15 +93,15 @@ export default function App() {
         </section>
 
         <section id="projects" className="content-section">
-          <SectionHeading file="projects/" title="프로젝트" description="구현 과제와 해결 방법, 코드에 담긴 선택을 정리했습니다."><span className="section-count">{String(projects.length).padStart(2, '0')} projects</span></SectionHeading>
+          <SectionHeading file="projects/" title="프로젝트와 문제 해결" description="담당 아키텍처부터 문제 상황, 기술적 판단과 구현 결과까지."><span className="section-count">{String(projects.length).padStart(2, '0')} projects</span></SectionHeading>
           <div className="project-toolbar"><div className="project-filters" role="group" aria-label="프로젝트 분야 필터">{projectCategories.map(category => <button key={category} type="button" aria-pressed={projectFilter === category} onClick={() => setProjectFilter(category)}>{category}<span>{category === '전체' ? projects.length : projects.filter(p => p.category === category).length}</span></button>)}</div><div className="project-search"><Icon name="search" size={16} /><input ref={projectSearchRef} type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="프로젝트 또는 기술 검색" aria-label="프로젝트 또는 기술 검색" aria-keyshortcuts="/" /><kbd aria-hidden="true">/</kbd></div></div>
           <p className="sr-only" role="status" aria-live="polite">{visibleProjects.length}개의 프로젝트</p>
           <div className="repository-grid">{visibleProjects.map(project => <article className={`repository-card ${Number(project.number) <= 2 ? 'is-featured' : ''}`} key={project.id}>
             <div className="repository-top"><span className={`project-category category-${categories[project.category].toLowerCase()}`}><Icon name="folder" size={18} />{categories[project.category]}</span>{Number(project.number) <= 2 ? <span className="featured-label"><Icon name="pin" size={12} />대표 프로젝트</span> : <span className="project-index">/{project.number}</span>}</div>
-            <h3><button type="button" onClick={() => setSelectedProject(project)}>{project.title}<Icon name="arrow" size={18} /></button></h3><p className="project-subtitle">{project.subtitle}</p><p className="project-description">{project.summary}</p>
+            <h3><button type="button" onClick={() => setSelectedProject(project)}>{project.title}<Icon name="arrow" size={18} /></button></h3><p className="project-subtitle">{caseStudies[project.id]?.focus || project.subtitle}</p><p className="project-description">{project.summary}</p>
             {project.challenge && project.solution && <dl className="project-engineering"><div><dt>문제</dt><dd>{project.challenge}</dd></div><div><dt>해결</dt><dd>{project.solution}</dd></div></dl>}
             <dl className="project-metadata"><div><dt>기간</dt><dd>{project.period}</dd></div><div><dt>역할</dt><dd>{project.role}</dd></div></dl><div className="tech-tags">{project.stack.map(tech => <span key={tech}>{tech}</span>)}</div>
-            <div className="project-actions"><ExternalLink href={project.githubUrl || profile.github}><Icon name="github" size={16} />{project.githubUrl ? '소스 코드' : 'GitHub 프로필'}</ExternalLink><button type="button" onClick={() => setSelectedProject(project)} aria-label={`${project.title} 구현 상세 보기`}>구현 상세<Icon name="chevron" size={16} /></button></div>
+            <div className="project-actions"><ExternalLink href={project.githubUrl || profile.github}><Icon name="github" size={16} />{project.githubUrl ? '소스 코드' : 'GitHub 프로필'}</ExternalLink><button type="button" onClick={() => setSelectedProject(project)} aria-label={`${project.title} 구현 상세 보기`}>{caseStudies[project.id] ? '구조도 · 해결 과정' : '담당 내용 보기'}<Icon name="chevron" size={16} /></button></div>
           </article>)}</div>
           {!visibleProjects.length && <div className="empty-search"><Icon name="search" size={27} /><h3>일치하는 프로젝트가 없습니다.</h3><p>다른 기술명으로 검색하거나 필터를 초기화해 보세요.</p><button type="button" className="button button-secondary" onClick={() => { setQuery(''); setProjectFilter('전체'); }}>전체 프로젝트 보기</button></div>}
         </section>
